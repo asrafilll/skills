@@ -53,7 +53,26 @@
   .legend b { flex: 0 0 20px; height: 20px; border-radius: 50%; background: var(--red); color: #fff; font-size: 11px; line-height: 20px; text-align: center; }
   .after .legend b { background: var(--green); }
   /* AFTER mocks drawn in HTML: set the device width on .device */
-  .device { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--line); border-radius: 18px; padding: 12px; background: #fff; }
+  .device { width: 100%; max-width: 390px; margin: 0 auto; border: 1px solid var(--line); border-radius: 18px; padding: 20px; background: #fff; }
+  /* Screenshot outline: around the outside of the shot, never over its text */
+  .shot > .mark.whole { inset: -5px; }
+  /* Product look for mocks. Replace these values with the project's own tokens
+     (its CSS variables or theme file); keep the class names. */
+  .mock { --m-primary: #2563eb; --m-ink: #0f172a; --m-muted: #64748b; --m-bg: #f1f5f9; --m-card: #fff;
+    --m-line: #e2e8f0; --m-ok: #15803d; --m-warn: #a16207; --m-bad: #b91c1c; --m-radius: 20px;
+    font-family: system-ui, sans-serif; color: var(--m-ink); font-size: 14px; background: var(--m-bg); }
+  .mock p { margin: 0; }
+  .mock .m-card { background: var(--m-card); border-radius: var(--m-radius); padding: 16px; box-shadow: 0 4px 14px rgb(0 0 0 / .06); }
+  .mock .m-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .mock .m-title { font-weight: 800; } .mock .m-sub { font-size: 12px; color: var(--m-muted); font-weight: 600; }
+  .mock .m-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--m-muted); font-weight: 600; }
+  .mock .m-pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+  .mock .m-btn { display: flex; align-items: center; justify-content: center; height: 44px; border-radius: 999px; font-weight: 800; background: var(--m-primary); color: #fff; }
+  /* Icons: inline SVG from scripts/icons-to-svg.mjs inside <span class="m-icon">. Never emoji. */
+  .mock .m-icon { display: inline-flex; flex: none; width: 14px; height: 14px; color: var(--m-primary); }
+  .mock .m-icon svg { width: 100%; height: 100%; }
+  /* Mock callouts sit 9px or more outside the element they mark */
+  .mock .m-hl { position: relative; } .mock .m-hl > .mark { inset: -9px; }
   .notes { font-size: 14px; }
   .notes p { margin: 0 0 8px; }
   .notes .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; display: block; }
@@ -170,7 +189,13 @@
           <img src="f1-after.png" alt="After: SCREEN">
           <div class="mark" data-n="1" style="left:10%;top:70%;width:80%;height:12%"></div>
         </div>
-        <!-- …or an HTML mock: <div class="device">…</div> -->
+        <!-- …or an HTML mock in the product's look (the default without a design tool):
+        <div class="device mock">
+          <div class="m-card">
+            <div class="m-row m-hl"><p class="m-title">NAME</p><span class="m-pill">BADGE</span><div class="mark" data-n="1"></div></div>
+            <p class="m-meta"><span class="m-icon"><svg>…from icons-to-svg.mjs…</svg></span>DETAIL</p>
+          </div>
+        </div> -->
         <ol class="legend"><li><b>1</b>WHAT IS DIFFERENT NOW</li></ol>
       </div>
       <div class="notes">

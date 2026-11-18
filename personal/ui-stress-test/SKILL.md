@@ -85,6 +85,12 @@ For every job in the brief, do these five things in order. Log them in the per-j
 
 - **L4 Screen:** on each screen of each job, is what this role needs first actually first, at this device size? Does it open on today, on the role's own work, on the action they came for?
 - **L5 Element:** on a live page, inject [scripts/dom-audit.js](scripts/dom-audit.js) and read its JSON (tap targets, contrast, small text, overflow, unnamed controls, heading outline). Then run [scripts/axe.js](scripts/axe.js) if the page can load axe-core. Never estimate contrast by eye. Items marked `needs-pixel-check` (gradient, image or translucent background) go to [scripts/pixel-contrast.mjs](scripts/pixel-contrast.mjs) in Playwright; without Playwright, sample the background from a screenshot and say so. Items it returns as `skipped` (covered by a sticky bar, gone) need a look by eye. With no DOM at all (a design file, tokens, a screenshot), read each text and background colour pair and run them through [scripts/contrast.mjs](scripts/contrast.mjs) (`node <skill-dir>/scripts/contrast.mjs '#8A98AE' '#FFFFFF'`, or many pairs on stdin); it returns the ratio and the closest shade that passes, which goes into the fix.
+- **Layout sweep, every page and every width (L4–L6):** the job walks only reach the job screens at one device size; layout problems hide on the rest. For each role, list **every route the role can open** (router or route files, the nav, the role access map), plus one detail page per list, opened the way the app links to it (by code or slug if that's what the links use). Run each page at **every width the product supports**: phone 390×844, tablet 768×1024, small laptop or landscape tablet 1024×768, desktop 1440×900 (skip a width only when the product truly doesn't serve it, and say so). Tablet and 1024 are where desktop layouts (sidebar, tables, side-by-side controls) first appear with too little room, so they find problems neither phone nor desktop shows. For each page and width:
+  1. wait until the data has loaded (no skeleton or "loading" text), not a fixed delay;
+  2. run [scripts/layout-sweep.js](scripts/layout-sweep.js) and keep its JSON;
+  3. take a full-page screenshot into `<screenshot-dir>/<width>/<role>_<route>.png`.
+
+  Then run `python3 <skill-dir>/scripts/contact-sheet.py <screenshot-dir>/<width>` for each width and look at **every** sheet. The script finds candidates; you confirm each in the screenshot and add what it can't see. A finding names the widths where it shows ("cut at 768 and 1024, fine at 390 and 1440"). Patterns and fixes: [references/stress-matrix.md](references/stress-matrix.md) section 7. With short seed data, add long realistic test records first (same section).
 - **L6 States:** run [references/stress-matrix.md](references/stress-matrix.md). For content extremes, map each screen's fields and limits first, then use realistic or schema-limit values only (its section 1).
 
 How to run the scripts. `<skill-dir>` is the folder this SKILL.md is in; use its absolute path, because the agent's working directory is the project, not the skill.
@@ -97,6 +103,8 @@ const S = '<skill-dir>/scripts/';
 const h = await page.evaluate(() => document.documentElement.scrollHeight);
 await page.setViewportSize({ width: 390, height: Math.min(h, 16000) });
 const audit = await page.evaluate(await fs.readFile(S + 'dom-audit.js', 'utf8'));
+// layout-sweep.js runs at each real width (390x844, 768x1024, 1024x768, 1440x900),
+// not the tall viewport.
 const axe = await page.evaluate(await fs.readFile(S + 'axe.js', 'utf8'));
 await page.setViewportSize({ width: 390, height: 844 }); // back to the real device size
 const { pixelContrast } = await import(S + 'pixel-contrast.mjs');
@@ -159,6 +167,7 @@ Other next steps, one at a time and only on a yes:
 - **Screenshots or design frames older than the live app:** write the capture date next to every static finding. On the live app, find elements by visible text or role, not by position or by an ID from the capture. If the two disagree, the live app wins and the old capture is noted as stale.
 - **Others writing to the same canvas or database:** read the current state right before each action, work only on your own prefixed records, and never move or delete what you didn't create.
 - **A tool's engine fails** (browser automation crashes, the design tool errors out): retry once, then use its command-line or headless mode if it has one, then fall back to static review or an HTML capture. Write in the report which steps used a fallback.
+- **A page never leaves its loading state in the sweep:** the route probably takes a different key than you passed (a member code instead of a database ID). Open it from a link on its list page instead, and note any page you couldn't load in the report.
 - **Too many findings:** report all flow changes and the top 10 Fix items. Put the rest in the appendix.
 - **The user's taste conflicts with a standard:** report the standard and the trade-off once; the user decides.
 - **Secrets or personal data on screen:** blur or crop screenshots; never paste real phone numbers, emails or IDs into the report.

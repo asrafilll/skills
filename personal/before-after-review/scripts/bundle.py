@@ -4,8 +4,9 @@
 Usage: python3 bundle.py path/to/index.html
 
 1. Checks the page: every local image exists, no template text is left over,
-   every card has an ID, a decision block named after that ID, and a legend
-   line for each numbered callout.
+   every card has an ID, a decision block named after that ID, a legend
+   line for each numbered callout, and no emoji inside an AFTER mock (mocks
+   use the product's own icons; see scripts/icons-to-svg.mjs).
 2. Writes index.standalone.html next to it, with every local image inlined as
    a data URI, so the single file shows everything on another machine.
 
@@ -17,6 +18,9 @@ import mimetypes
 import re
 import sys
 from pathlib import Path
+
+# Emoji and pictographs; mocks must use the product's icons instead.
+EMOJI = re.compile("[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F000-\U0001F2FF]")
 
 LEFTOVER = [
     "SCOPE", "VERDICT SENTENCE", "TITLE OF THE", "WHAT IS WRONG HERE", "WHAT IS DIFFERENT NOW",
@@ -52,6 +56,11 @@ def main(page: Path) -> int:
             legend = set(re.findall(r"<li><b>(\d+)</b>", pane))
             for n in sorted(marks - legend, key=int):
                 errors.append(f"{cid}: callout {n} has no legend line")
+        for pane in re.findall(r'<div class="pane after">(.*?)(?=<div class="notes"|<div class="decide"|$)', card, flags=re.S):
+            mock = re.sub(r"<ol class=\"legend\">.*?</ol>", "", pane, flags=re.S)
+            found = sorted(set(EMOJI.findall(re.sub(r"<[^>]+>", "", mock))))
+            if found:
+                errors.append(f"{cid}: emoji in the AFTER mock ({' '.join(found)}); use the product's icons")
     for dup in sorted({i for i in ids if ids.count(i) > 1}):
         errors.append(f"duplicate card id {dup}")
 

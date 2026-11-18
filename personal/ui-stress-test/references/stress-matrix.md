@@ -9,6 +9,7 @@ Used in Step 3, after the job walks. Flow checks live in Step 2 and flow-pattern
 4. Input and interaction
 5. Accessibility
 6. Localisation
+7. Layout patterns at every width
 
 ## 1. Content extremes
 Method adapted from Emil Kowalski's `break-ui` skill (MIT). If `break-ui` is installed, load its `CATALOG.md` for the full list of worst-case values per field type.
@@ -98,3 +99,24 @@ Test in **the product's locale(s)**. Examples below use Indonesian; swap in the 
 - Mixed languages on one screen; right-to-left scripts if they're supported.
 - The locale's date format (`DD/MM/YYYY` versus ISO), currency (`Rp 1.250.000`, `1.250,00 €`), decimal and grouping separators.
 - The locale's name formats: single names (common in Indonesia), very long full names, family name first, titles and suffixes (Dr., H., S.Kom.).
+
+## 7. Layout patterns at every width
+
+Run on **every page each role can open**, at phone, tablet, 1024 and desktop widths, with [scripts/layout-sweep.js](../scripts/layout-sweep.js) and a look at each contact sheet (SKILL.md Step 3). These pass every per-element check (tap size, contrast, overflow) and still make a page hard to read, so look for them by eye too. Each one is a Fix when the cut or squeezed text is something the role needs (a name, an amount, a date); otherwise an Improve.
+
+| Pattern | What you see | Script key | Usual fix |
+|---|---|---|---|
+| Text squeezed beside a badge, price or button | A title or detail wraps to 2 to 4 lines in half the row because a badge, price column or button sits on its right ("Maya's plan / 3 sessions left … [Renew]") | `squeezed` | Move the button or price to its own row under the text. A name and its badge can share the top row (space between) when the details go below. |
+| Text cut beside icons or a badge | A name or date ends in "…" while two icon buttons or a status pill take the rest of the row | `squeezed` (`cut: true`) | Let the name wrap; move the pill or the secondary detail under it. Never cut a date or amount. |
+| Several facts in one "·" line | "Pool · coaches · class type" or "ref · parent · type · age" wraps over 2+ lines, breaking mid-phrase | `denseMeta` | One fact per row, each with the product's icon; drop the facts the detail page already shows (class type, capacity). |
+| Cut text inside a link or button | The ellipsis sits inside a link or button, so tapping opens something else and the full text is never reachable | `cutUnopenable` | Wrap instead of cutting, or shorten the label (drop the year); a tap-to-reveal can't work there. |
+| Illustration sharing a row with content | A mascot or illustration keeps the right third of a card, so the content beside it wraps into a narrow column, or the picture covers text | `squeezed` (`beside: img`), `imageOverText` | Put the illustration beside the heading only; the content below uses the full width. |
+| List that never ends | A page or section is more than 3 phone screens of repeated rows (every session of the month, every raport in full) | `longPage.tallestList` | Show the next few or the latest few as short cards that open a detail, with "Lihat semua"; group by day or paginate. |
+| Cut cells in a table | At tablet or desktop, a table column cuts names, package names or the line under a reference ("Kevin Gunawan, Kezia Gu…") while other columns have room | `cut` | Let the name and title columns wrap (2 lines), give fixed-content columns (amounts, status) their natural width, or drop a column below a breakpoint and show it under the name. |
+| Desktop layout too early | At 768 to 1024 the desktop layout (sidebar plus table, pickers side by side) appears but its columns or buttons cut their text | `cut`, `cutUnopenable`, `squeezed` | Move the breakpoint up (keep the stacked layout until there's room), or stack the controls at that width. |
+| Two controls squeezing each other | Two buttons or selects side by side, each cutting its label ("Bulan ini · Nov 20…") | `cutUnopenable`, `squeezed` | Shorter labels, or stack them on phones. |
+
+Not a finding: a page description wrapping beside the page's main button in the header; that wrap is by design. Report a pattern with the widths where it shows.
+
+Short demo data hides most of these. If every name in the seed data is short, add one test record per list with a long realistic value (prefix `uist-<date>-`, revert at the end), or the truncation checks find nothing.
+
